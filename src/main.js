@@ -5,7 +5,7 @@ import './style.css';
 import {buildFamilyComponents,familyTransform,familySpecs,familyCounts} from './family-parameters.js';
 let editableItems=[];
 let originals=[];
-import {createViewCamera,resizeViewCamera} from './view-camera.js';
+import {createViewCamera,resizeViewCamera,preserveView} from './view-camera.js';
 import {createInspector} from './inspection.js';
 let inspector;
 const $=s=>document.querySelector(s);
@@ -29,7 +29,7 @@ document.addEventListener('fullscreenchange',()=>$('#fullscreen').textContent=do
 function sync(){for(const [,items]of specs)for(const[k]of items){$('#'+k).value=p[k];$('#'+k+'-value').textContent=k.endsWith('Count')?String(p[k]):k.endsWith('Scale')?p[k].toFixed(2)+'×':p[k].toFixed(2)+' m';}}
 const materials={};for(const k of Object.keys(layerNames))materials[k]=new THREE.MeshStandardMaterial({color:({ground:0x343434,stones:0x8c8c8c,columns:0xa48b65,ties:0xb09870,floor:0xb99c70,beams:0xb99b70,stairs:0xb69870,roof:0xb6a481})[k],roughness:.9,side:THREE.DoubleSide});
 function rawPositions(item){return Float64Array.from(item.base,(_,i)=>{const k=i-i%3;return deform(item.base[k],item.base[k+1],item.base[k+2],p)[i%3];});}
-function update(){
+function update(){return preserveView(camera,orbit,()=>{
  inspector?.clear();for(const mesh of sourceMeshes){mesh.removeFromParent();mesh.geometry.dispose();}sourceMeshes.length=0;
  const bounds=new THREE.Box3();
  for(const item of editableItems){const transformed=familyTransform(item,rawPositions(item),p),geo=new THREE.BufferGeometry();geo.setAttribute('position',new THREE.Float32BufferAttribute(transformed,3));geo.setIndex(item.indices);geo.computeVertexNormals();geo.computeBoundingBox();geo.computeBoundingSphere();const mesh=new THREE.Mesh(geo,materials[item.group]);mesh.name=item.name;mesh.userData={group:item.group,elementKey:item.name,generated:!!item.generated};layers[item.group].add(mesh);sourceMeshes.push(mesh);bounds.union(geo.boundingBox);}
@@ -40,7 +40,7 @@ function update(){
  const counts=familyCounts(editableItems);$('#viewer').dataset.familyCounts=JSON.stringify(counts);
  $('#frame-summary').textContent=`${p.frameCount} roof frames · ${(9*p.lengthScale/(p.frameCount-1)).toFixed(2)} m frame spacing · ${counts.roofRibs} roof ribs · ${counts.roofLongitudinals} longitudinal roof members · ${counts.longitudinalBeams} longitudinal beams · ${counts.ties} lower ties · ${counts.steps} stair treads`;
  $('#viewer').dataset.columnCount=String(sourceMeshes.filter(m=>m.userData.group==='columns').length);$('#viewer').dataset.frameCount=String(p.frameCount);
-}
+});}
 function setView(view){
  currentView=view;if(!camera||!model)return;
  const e=$('#viewer'),aspect=Math.max(e.clientWidth,1)/Math.max(e.clientHeight,1);
@@ -55,7 +55,7 @@ function setView(view){
 }
 function rebuildComponents(){editableItems=buildFamilyComponents(originals,p);}
 async function load(){try{
- scene=new THREE.Scene();scene.background=new THREE.Color(0x080808);renderer=new THREE.WebGLRenderer({antialias:true});renderer.setPixelRatio(Math.min(devicePixelRatio,2));$('#viewer').appendChild(renderer.domElement);camera=new THREE.PerspectiveCamera(36,1,.1,300);orbit=new OrbitControls(camera,renderer.domElement);orbit.enableDamping=true;orbit.maxDistance=100;orbit.minDistance=3;scene.add(new THREE.HemisphereLight(0xffffff,0x353535,2.6));const sun=new THREE.DirectionalLight(0xfff2dc,3);sun.position.set(-8,16,-6);scene.add(sun);const grid=new THREE.GridHelper(40,40,0x444444,0x222222);grid.position.y=-.02;scene.add(grid);
+ scene=new THREE.Scene();scene.background=new THREE.Color(0x080808);renderer=new THREE.WebGLRenderer({antialias:true});renderer.setPixelRatio(Math.min(devicePixelRatio,2));$('#viewer').appendChild(renderer.domElement);camera=new THREE.PerspectiveCamera(36,1,.1,300);orbit=new OrbitControls(camera,renderer.domElement);orbit.enableDamping=false;orbit.maxDistance=100;orbit.minDistance=3;scene.add(new THREE.HemisphereLight(0xffffff,0x353535,2.6));const sun=new THREE.DirectionalLight(0xfff2dc,3);sun.position.set(-8,16,-6);scene.add(sun);const grid=new THREE.GridHelper(40,40,0x444444,0x222222);grid.position.y=-.02;scene.add(grid);
  new ResizeObserver(()=>{const e=$('#viewer');renderer.setSize(e.clientWidth,e.clientHeight);resizeViewCamera(camera,Math.max(e.clientWidth,1)/Math.max(e.clientHeight,1));}).observe($('#viewer'));
  const response=await fetch(import.meta.env.BASE_URL+'models/toba-baseline.json');if(!response.ok)throw Error('Model request failed: '+response.status);const data=await response.json();
  model=new THREE.Group();scene.add(model);for(const k of Object.keys(layerNames)){layers[k]=new THREE.Group();model.add(layers[k]);layers[k].visible=visible[k];}

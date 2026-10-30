@@ -22,3 +22,12 @@ export function resizeViewCamera(camera,aspect){
  else camera.aspect=aspect;
  camera.updateProjectionMatrix();
 }
+
+// Geometry updates must never own camera framing. Restore the same camera and
+// target even if a future geometry operation changes them or throws.
+export function preserveView(camera,controls,updateGeometry){
+ if(!camera||!controls)return updateGeometry();
+ const state={position:camera.position.clone(),quaternion:camera.quaternion.clone(),up:camera.up.clone(),zoom:camera.zoom,target:controls.target.clone()};
+ try{return updateGeometry();}
+ finally{camera.position.copy(state.position);camera.quaternion.copy(state.quaternion);camera.up.copy(state.up);camera.zoom=state.zoom;controls.target.copy(state.target);camera.updateProjectionMatrix();camera.updateMatrixWorld(true);}
+}

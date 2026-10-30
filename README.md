@@ -46,7 +46,7 @@ Reset restores the original 132 placements geometrically as 252 separated pieces
 
 ## Viewport layout
 
-Axonometric is the startup view. Slider changes, geometry regeneration, parameter reset/import, and viewport resizing preserve the current camera orbit, pan and zoom. Explicit view buttons and Fit model reframe the camera. The canvas fills remaining screen height. Assembly layers open on demand beneath it, with bounded panel scrolling. The References panel and Export parameters button have been removed. Fit model reframes the current view; Expand viewport enters browser fullscreen for the workspace where supported. The desktop sidebar scrolls separately and mobile retains a compact parameter area. Orthographic framing leaves an 8% margin around the projected model bounds.
+Axonometric is the startup view. Slider changes, geometry regeneration, parameter reset/import, and viewport resizing preserve the current camera orbit, pan and zoom. Geometry updates explicitly snapshot and restore camera pose and orbit target. Orbit inertia is disabled so movement stops when the pointer is released. Explicit view buttons and Fit model reframe the camera. The canvas fills remaining screen height. Assembly layers open on demand beneath it, with bounded panel scrolling. The References panel and Export parameters button have been removed. Fit model reframes the current view; Expand viewport enters browser fullscreen for the workspace where supported. The desktop sidebar scrolls separately and mobile retains a compact parameter area. Orthographic framing leaves an 8% margin around the projected model bounds.
 
 
 ## Component-family sliders
