@@ -9,7 +9,7 @@ npm ci
 npm run dev
 ```
 
-Use a WebGL-enabled browser. Drag to orbit, scroll to zoom, and right-drag to pan. 3D uses perspective. Axon uses an orthographic axonometric starting orientation at approximately 16° elevation and 55° azimuth, guided by the supplied reference image with orbit controls. Front, Side and Plan use orthographic projection with pan and zoom (rotation locked). These views show model-space geometry, not independently verified survey drawings. Layer checkboxes use provisional classifications of generically named source objects.
+Use a WebGL-enabled browser. Drag to orbit, scroll to zoom, and right-drag to pan. 3D uses perspective. Axon uses an orthographic axonometric starting orientation at approximately 22° elevation and 55° azimuth from the front side (entrance stair visible on the left), guided by the supplied reference image with orbit controls. Front, Side and Plan use orthographic projection with pan and zoom (rotation locked). These views show model-space geometry, not independently verified survey drawings. Layer checkboxes use provisional classifications of generically named source objects.
 
 Width/length controls scale the source mesh horizontally. Vertical controls continuously rescale the source around model-derived floor-top (2.23 m) and upper-beam-top (4.30 m) datums. They preserve the source topology and do not constitute a validated shape grammar or structural analysis. Reset restores the source geometry with only horizontal centring and rendering precision differences. Source columns are approximately 0.25 m in diameter; the 0.20 m estimate from a different plan is not imposed on them.
 
