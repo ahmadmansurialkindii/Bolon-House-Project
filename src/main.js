@@ -8,11 +8,12 @@ let editableItems=[];
 let originals=[];
 import {createViewCamera,resizeViewCamera,preserveView} from './view-camera.js';
 import {createInspector} from './inspection.js';
+import {componentQuantities} from './component-quantities.js';
 let inspector;
 const $=s=>document.querySelector(s);
 let p={...baseline},wire=false,outlined=false,currentView='axonometric',sourceMeshes=[],model,layers={},orbit,camera,renderer,scene,groundGrid,keyLight;
 const specs=[...familySpecs,['PROPORTIONS',[['widthScale','Transverse scale',.7,1.4,.01],['lengthScale','Longitudinal scale',.7,1.4,.01]]],['Vertical relationships',[['floor','Floor top datum',1.2,3,.01],['body','Floor-to-upper-beam span',1.2,3,.01],['roofScale','Roof vertical scale',.65,1.35,.01]]]];
-const layerNames={ground:'01  Source ground slab',stones:'02  Stone supports',columns:'03  Columns',ties:'04  Lower connecting members',floor:'05  Floor / horizontal surfaces',beams:'06  Upper beams',stairs:'07  Entrance stair',roof:'08  Roof assembly'};
+const layerNames={ground:'01  Source ground slab',stones:'02  Stone supports',columns:'03  Columns',ties:'04  Lower connecting members',floor:'05  FLOOR',beams:'06  Upper beams',stairs:'07  Entrance stair',roof:'08  Roof assembly'};
 const visible=Object.fromEntries(Object.keys(layerNames).map(k=>[k,true]));
 $('#controls').innerHTML=specs.map(([title,items],i)=>`<details class="control-group" ${i===0?'open':''}><summary>${title}<span>+</span></summary>${items.map(([key,label,min,max,step])=>`<label class="slider-label" for="${key}">${label}<output id="${key}-value"></output></label><input id="${key}" data-key="${key}" type="range" min="${min}" max="${max}" step="${step}">`).join('')}</details>`).join('');
 $('#layers').innerHTML=Object.entries(layerNames).map(([k,n])=>`<label class="layer"><input type="checkbox" data-layer="${k}" checked><span>${n}</span></label>`).join('');
@@ -20,22 +21,34 @@ $('.metrics div:first-child span').textContent='COMPLETE SOURCE EXTENTS';
 // Keep supporting information available without consuming the modelling canvas.
 const layerPanel=$('.layer-panel');
 layerPanel.hidden=true;
-const dock=document.createElement('div');dock.className='viewport-tools';dock.innerHTML='<div><button id="toggle-layers" aria-expanded="false">Assembly layers</button></div><div><button id="fit-view" title="Fit model to the current view">Fit model</button><button id="fullscreen">Expand viewport</button></div>';
+const dock=document.createElement('div');dock.className='viewport-tools';dock.innerHTML='<div><button id="toggle-quantities" aria-controls="quantity-panel" aria-expanded="false">Quantities <span id="quantity-badge">· 0</span></button><button id="toggle-layers" aria-expanded="false">Assembly layers</button></div><div><button id="fit-view" title="Fit model to the current view">Fit model</button><button id="fullscreen">Expand viewport</button></div>';
 $('.metrics').after(dock);
-$('#toggle-layers').addEventListener('click',()=>{if(smallScreen.matches)showParameters(false);layerPanel.hidden=!layerPanel.hidden;$('#toggle-layers').setAttribute('aria-expanded',String(!layerPanel.hidden));});
+const quantityPanel=document.createElement('section');quantityPanel.id='quantity-panel';quantityPanel.className='quantity-panel';quantityPanel.hidden=true;quantityPanel.setAttribute('aria-label','Component quantities');quantityPanel.innerHTML='<div class="panel-heading"><h2>Component quantities</h2><button id="close-quantities" aria-label="Close component quantities">×</button></div><div class="quantity-total" role="status" aria-live="polite" aria-atomic="true"><strong id="quantity-total">0</strong> modelled pieces</div><p class="quantity-note">Includes hidden layers · ground base excluded</p><div id="quantity-rows"></div>';
+$('.workspace').append(quantityPanel);
+function showQuantities(open){quantityPanel.hidden=!open;$('#toggle-quantities').setAttribute('aria-expanded',String(open));if(open){layerPanel.hidden=true;$('#toggle-layers').setAttribute('aria-expanded','false');if(smallScreen.matches)showParameters(false);}}
+$('#toggle-quantities').addEventListener('click',()=>showQuantities(quantityPanel.hidden));
+$('#close-quantities').addEventListener('click',()=>{showQuantities(false);$('#toggle-quantities').focus({preventScroll:true});});
+function updateQuantities(){
+ const quantities=componentQuantities(editableItems);
+ $('#quantity-total').textContent=String(quantities.total);$('#quantity-badge').textContent='· '+quantities.total;
+ $('#quantity-rows').innerHTML=quantities.sections.map(section=>`<section class="quantity-section"><h3>${section.label}${section.label==='ROOF'?`<span>${quantities.roofFrames} frame assemblies</span>`:''}</h3><dl>${section.rows.map(row=>`<div><dt>${row.label}</dt><dd data-quantity="${row.key}">${row.count}</dd></div>`).join('')}</dl></section>`).join('');
+ $('#viewer').dataset.quantities=JSON.stringify(quantities);
+}
+
+$('#toggle-layers').addEventListener('click',()=>{showQuantities(false);if(smallScreen.matches)showParameters(false);layerPanel.hidden=!layerPanel.hidden;$('#toggle-layers').setAttribute('aria-expanded',String(!layerPanel.hidden));});
 $('#fit-view').addEventListener('click',()=>setView(currentView));
 $('#fullscreen').addEventListener('click',async()=>{try{if(document.fullscreenElement)await document.exitFullscreen();else await $('.workspace').requestFullscreen();}catch{$('#fullscreen').textContent='Fullscreen unavailable';}});
 document.addEventListener('fullscreenchange',()=>$('#fullscreen').textContent=document.fullscreenElement?'Exit expanded view':'Expand viewport');
 // Controls float above the canvas and never intercept canvas gestures.
 const parameterPanel=$('#parameter-panel'),smallScreen=matchMedia('(max-width:680px)');
-function showParameters(open){if(open&&smallScreen.matches){layerPanel.hidden=true;$('#toggle-layers').setAttribute('aria-expanded','false');}parameterPanel.hidden=!open;$('#toggle-parameters').setAttribute('aria-expanded',String(open));}
+function showParameters(open){if(open&&smallScreen.matches){showQuantities(false);layerPanel.hidden=true;$('#toggle-layers').setAttribute('aria-expanded','false');}parameterPanel.hidden=!open;$('#toggle-parameters').setAttribute('aria-expanded',String(open));}
 showParameters(!smallScreen.matches);
 $('#toggle-parameters').addEventListener('click',()=>showParameters(parameterPanel.hidden));
 $('#close-parameters').addEventListener('click',()=>{showParameters(false);$('#toggle-parameters').focus({preventScroll:true});});
 smallScreen.addEventListener('change',e=>showParameters(!e.matches));
-document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!document.fullscreenElement){showParameters(false);layerPanel.hidden=true;$('#toggle-layers').setAttribute('aria-expanded','false');}});
-function sync(){for(const [,items]of specs)for(const[k]of items){$('#'+k).value=p[k];$('#'+k+'-value').textContent=k.endsWith('Count')?String(p[k]):k.endsWith('Scale')?p[k].toFixed(2)+'×':p[k].toFixed(2)+' m';}}
-const materials={};for(const k of Object.keys(layerNames))materials[k]=new THREE.MeshStandardMaterial({color:({ground:0x343434,stones:0x8c8c8c,columns:0xa48b65,ties:0xb09870,floor:0xb99c70,beams:0xb99b70,stairs:0xb69870,roof:0xb6a481})[k],roughness:.9,side:THREE.DoubleSide});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!document.fullscreenElement){showParameters(false);showQuantities(false);layerPanel.hidden=true;$('#toggle-layers').setAttribute('aria-expanded','false');}});
+function sync(){for(const [,items]of specs)for(const[k]of items){$('#'+k).value=p[k];$('#'+k+'-value').textContent=k.endsWith('Count')?String(p[k]):k.endsWith('Scale')?p[k].toFixed(2)+'×':p[k].toFixed(k==='floorBoardGap'?3:2)+' m';}}
+const materials={};for(const k of Object.keys(layerNames))materials[k]=new THREE.MeshStandardMaterial({color:({ground:0x343434,stones:0x8c8c8c,columns:0xa48b65,ties:0xb09870,floor:0xffffff,beams:0xb99b70,stairs:0xb69870,roof:0xb6a481})[k],roughness:.9,side:THREE.DoubleSide});
 for(const material of Object.values(materials))material.userData.originalColor=material.color.getHex();
 function rawPositions(item){return Float64Array.from(item.base,(_,i)=>{const k=i-i%3;return deform(item.base[k],item.base[k+1],item.base[k+2],p)[i%3];});}
 function update(){return preserveView(camera,orbit,()=>{
@@ -44,6 +57,7 @@ function update(){return preserveView(camera,orbit,()=>{
  for(const item of editableItems){const transformed=familyTransform(item,rawPositions(item),p),geo=new THREE.BufferGeometry();geo.setAttribute('position',new THREE.Float32BufferAttribute(transformed,3));geo.setIndex(item.indices);geo.computeVertexNormals();geo.computeBoundingBox();geo.computeBoundingSphere();const mesh=new THREE.Mesh(geo,materials[item.group]);mesh.name=item.name;mesh.userData={group:item.group,elementKey:item.name,generated:!!item.generated};setMeshOutline(mesh,outlined);layers[item.group].add(mesh);sourceMeshes.push(mesh);bounds.union(geo.boundingBox);}
  {const size=bounds.isEmpty()?new THREE.Vector3():bounds.getSize(new THREE.Vector3());$('#footprint').textContent=`${size.x.toFixed(2)} × ${size.z.toFixed(2)} m`;$('#height').textContent=size.y.toFixed(2)+' m';}
  $('#viewer').dataset.instances=String(sourceMeshes.length);$('#viewer').dataset.editablePieces=String(editableItems.length);
+ updateQuantities();
  const counts=familyCounts(editableItems);$('#viewer').dataset.familyCounts=JSON.stringify(counts);
  $('#viewer').dataset.columnCount=String(sourceMeshes.filter(m=>m.userData.group==='columns').length);$('#viewer').dataset.frameCount=String(p.frameCount);
 });}
@@ -69,7 +83,7 @@ async function load(){try{
  rebuildComponents();
  update();setView('axonometric');inspector=createInspector({container:$('.layer-panel'),viewer:$('#viewer'),meshes:sourceMeshes,groups:layers,materials,layerNames,getCamera:()=>camera,getRenderer:()=>renderer});renderer.setAnimationLoop(()=>{orbit.update();renderer.render(scene,camera);});$('#viewer').dataset.loaded='true';$('#viewer').dataset.instances=String(sourceMeshes.length);
  }catch(e){$('#render-error').hidden=false;$('#render-error').textContent='Unable to load the source model. '+e.message;console.error(e);}}
-$('#controls').addEventListener('input',e=>{const k=e.target.dataset.key;if(k){p[k]=Number(e.target.value);if(k.endsWith('Count'))rebuildComponents();sync();update();}});
+$('#controls').addEventListener('input',e=>{const k=e.target.dataset.key;if(k){p[k]=Number(e.target.value);if(k.endsWith('Count')||k==='floorBoardGap'||k==='widthScale')rebuildComponents();sync();update();}});
 $('#layers').addEventListener('change',e=>{const k=e.target.dataset.layer;if(k){visible[k]=e.target.checked;if(layers[k])layers[k].visible=visible[k];inspector?.visibilityChanged();}});
 $('#views').addEventListener('click',e=>{if(e.target.dataset.view)setView(e.target.dataset.view);});
 $('#reset').addEventListener('click',()=>{p={...baseline};rebuildComponents();sync();update();});
