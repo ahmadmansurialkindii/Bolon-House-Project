@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
 import {baseline,deform} from './dae-deform.js';
 import './style.css';
+import {createViewCamera} from './view-camera.js';
 import {createInspector} from './inspection.js';
 let inspector;
 const $=s=>document.querySelector(s);
@@ -20,10 +21,21 @@ $('.evidence').innerHTML='<summary>Source geometry & parameter assumptions <span
 function sync(){for(const [,items]of specs)for(const[k]of items){$('#'+k).value=p[k];$('#'+k+'-value').textContent=k.endsWith('Scale')?p[k].toFixed(2)+'×':p[k].toFixed(2)+' m';}}
 const materials={};for(const k of Object.keys(layerNames))materials[k]=new THREE.MeshStandardMaterial({color:({ground:0x343434,stones:0x8c8c8c,columns:0xa48b65,ties:0xb09870,floor:0xb99c70,beams:0xb99b70,stairs:0xb69870,roof:0xb6a481})[k],roughness:.9,side:THREE.DoubleSide});
 function update(){const bounds=new THREE.Box3();for(const m of sourceMeshes){const a=m.geometry.attributes.position;for(let i=0;i<a.count;i++){const b=i*3;const v=deform(m.userData.base[b],m.userData.base[b+1],m.userData.base[b+2],p);a.setXYZ(i,...v);}a.needsUpdate=true;m.geometry.computeVertexNormals();m.geometry.computeBoundingBox();m.geometry.computeBoundingSphere();bounds.union(m.geometry.boundingBox);}if(sourceMeshes.length){const size=bounds.getSize(new THREE.Vector3());$('#footprint').textContent=`${size.x.toFixed(2)} × ${size.z.toFixed(2)} m`;$('#height').textContent=size.y.toFixed(2)+' m';}if(currentView!=='perspective')setView(currentView);inspector?.refresh();}
-function setView(view){currentView=view;if(!camera||!model)return;const box=new THREE.Box3().setFromObject(model),size=box.getSize(new THREE.Vector3()),target=box.getCenter(new THREE.Vector3());const dist=Math.max(size.x,size.y,size.z)*1.9;camera.position.copy(target).add(new THREE.Vector3(...({front:[0,0,-dist],side:[dist,0,0],plan:[0,dist,0],perspective:[dist*.7,dist*.35,-dist*.8]}[view])));camera.up.set(0,1,0);if(view==='plan')camera.up.set(0,0,1);orbit.target.copy(target);orbit.update();document.querySelectorAll('[data-view]').forEach(b=>b.classList.toggle('active',b.dataset.view===view));}
+function setView(view){
+ currentView=view;if(!camera||!model)return;
+ const e=$('#viewer'),aspect=Math.max(e.clientWidth,1)/Math.max(e.clientHeight,1);
+ const result=createViewCamera(view,new THREE.Box3().setFromObject(model),aspect);
+ camera=result.camera;orbit.object=camera;orbit.target.copy(result.target);
+ orbit.enableRotate=view==='perspective'||view==='axonometric';orbit.update();
+ $('#viewer').dataset.projection=camera.isOrthographicCamera?'orthographic':'perspective';
+ $('#viewer').dataset.view=view;
+ document.querySelectorAll('[data-view]').forEach(b=>{b.classList.toggle('active',b.dataset.view===view);b.setAttribute('aria-pressed',String(b.dataset.view===view));});
+ $('.viewer-bottom>span').textContent=orbit.enableRotate?'Drag to orbit · Scroll to zoom · Right-drag to pan':'Scroll to zoom · Drag to pan · Orthographic projection';
+ orbit.mouseButtons.LEFT=orbit.enableRotate?THREE.MOUSE.ROTATE:THREE.MOUSE.PAN;
+}
 async function load(){try{
  scene=new THREE.Scene();scene.background=new THREE.Color(0x080808);renderer=new THREE.WebGLRenderer({antialias:true});renderer.setPixelRatio(Math.min(devicePixelRatio,2));$('#viewer').appendChild(renderer.domElement);camera=new THREE.PerspectiveCamera(36,1,.1,300);orbit=new OrbitControls(camera,renderer.domElement);orbit.enableDamping=true;orbit.maxDistance=100;orbit.minDistance=3;scene.add(new THREE.HemisphereLight(0xffffff,0x353535,2.6));const sun=new THREE.DirectionalLight(0xfff2dc,3);sun.position.set(-8,16,-6);scene.add(sun);const grid=new THREE.GridHelper(40,40,0x444444,0x222222);grid.position.y=-.02;scene.add(grid);
- new ResizeObserver(()=>{const e=$('#viewer');camera.aspect=e.clientWidth/e.clientHeight;camera.updateProjectionMatrix();renderer.setSize(e.clientWidth,e.clientHeight);}).observe($('#viewer'));
+ new ResizeObserver(()=>{const e=$('#viewer');renderer.setSize(e.clientWidth,e.clientHeight);if(model)setView(currentView);else{camera.aspect=e.clientWidth/e.clientHeight;camera.updateProjectionMatrix();}}).observe($('#viewer'));
  const response=await fetch(import.meta.env.BASE_URL+'models/toba-baseline.json');if(!response.ok)throw Error('Model request failed: '+response.status);const data=await response.json();
  model=new THREE.Group();scene.add(model);for(const k of Object.keys(layerNames)){layers[k]=new THREE.Group();model.add(layers[k]);layers[k].visible=visible[k];}
  for(const instance of data.instances){const source=data.geometries[instance.geometry],matrix=new THREE.Matrix4().set(...instance.matrix),vertices=new Float64Array(source.positions.length);const v=new THREE.Vector3();for(let i=0;i<source.positions.length;i+=3){v.fromArray(source.positions,i).applyMatrix4(matrix);vertices[i]=v.x;vertices[i+1]=v.y;vertices[i+2]=v.z;}const geo=new THREE.BufferGeometry();geo.setAttribute('position',new THREE.Float32BufferAttribute(vertices,3));geo.setIndex(source.indices);const mesh=new THREE.Mesh(geo,materials[instance.group]);mesh.name=instance.name;mesh.userData.base=vertices;mesh.userData.group=instance.group;mesh.userData.originalGroup=instance.group;mesh.userData.sourceGeometry=instance.geometry;layers[instance.group].add(mesh);sourceMeshes.push(mesh);}
