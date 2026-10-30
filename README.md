@@ -46,7 +46,7 @@ Reset restores the original 132 placements geometrically as 252 separated pieces
 
 ## Viewport layout
 
-Axonometric is the initial and reset view. The canvas fills remaining screen height. Assembly layers open on demand beneath it, with bounded panel scrolling. The References panel and Export parameters button have been removed. Fit model reframes the current view; Expand viewport enters browser fullscreen for the workspace where supported. The desktop sidebar scrolls separately and mobile retains a compact parameter area. Orthographic framing leaves an 8% margin around the projected model bounds.
+Axonometric is the startup view. Slider changes, geometry regeneration, parameter reset/import, and viewport resizing preserve the current camera orbit, pan and zoom. Explicit view buttons and Fit model reframe the camera. The canvas fills remaining screen height. Assembly layers open on demand beneath it, with bounded panel scrolling. The References panel and Export parameters button have been removed. Fit model reframes the current view; Expand viewport enters browser fullscreen for the workspace where supported. The desktop sidebar scrolls separately and mobile retains a compact parameter area. Orthographic framing leaves an 8% margin around the projected model bounds.
 
 
 ## Component-family sliders
@@ -57,14 +57,13 @@ The interface now uses family sliders instead of the individual transform/copy e
 | --- | --- |
 | Columns and stones | Columns per side row, column diameter, stone width/height scales |
 | Lower connecting members | Tie-level count, tie section scale |
-| Floor and upper beams | Independent lower-round, upper-longitudinal and outer-edge member counts and section scales; floor thickness; beam-cap size |
-| Roof | Frame count, transverse ribs per side, longitudinal members per side, roof member section scale |
+| Floor and upper beams | Independent lower-round and upper-longitudinal member counts and section scales; floor thickness; beam-cap size |
+| Roof | Frame count, transverse ribs per side, longitudinal members per side |
 | Stairs | Tread count, stair width, tread thickness |
-| Ground base | Width, length and thickness scales |
 | Overall proportions | Width, length, floor elevation, body span and roof height scales |
 
-Roof frame spacing is also a slider. Counts resample the original station spans; changing house dimensions changes resulting spacing. Baseline roof rib and longitudinal-member counts are 27 and 33 per side. Lower ties form five series with four levels each; longitudinal beams have three independently controlled paired groups: lower round members (source IDs 5/11), upper beams (10/27), and outer edge members (13/14). Each defaults to two members. Stair treads begin at seven. Source end-face/internal columns and connected roof pieces outside identified repeat families retain their counts.
+Roof frame spacing is also a slider. Counts resample the original station spans; changing house dimensions changes resulting spacing. Baseline roof rib and longitudinal-member counts are 27 and 33 per side. Lower ties form five series with four levels each; longitudinal beams have independent lower-round (source IDs 5/11) and upper-beam (10/27) controls, each defaulting to two members. Outer edge members (13/14) remain at their original pair count and section. Stair treads begin at seven. Source end-face/internal columns and connected roof pieces outside identified repeat families retain their counts.
 
 Resampling places source templates at interpolated centre positions and bounding sizes, preserving topology. Roof frame interpolation separately uses corresponding source vertices. Modified ribs/battens are exploratory approximations and are not guaranteed to contact every adjacent curved member. Section scales are axis-based approximations, not engineered timber-section calculations; local joints and collisions are not solved. Default sliders restore all source geometry, with only horizontal centring and rendering precision differences.
 
-Import supports family parameter files; exporting is no longer exposed in the interface. Legacy `beamRowCount` values map to all three new beam counts when explicit new values are absent. Earlier files without individual overrides can load with default values for new sliders. Files containing the former individual transform overrides are rejected with an explanation instead of silently discarding those edits. Click-to-highlight remains; the manual element editor and source-metadata panel are absent.
+Import supports family parameter files; exporting is no longer exposed in the interface. Legacy `beamRowCount` values map to the lower-round and upper-beam counts when explicit new values are absent. Removed roof-section, outer-edge and ground-base settings are ignored; those families retain their baseline geometry under family-specific edits. Earlier files without individual overrides can load with default values for new sliders. Files containing the former individual transform overrides are rejected with an explanation instead of silently discarding those edits. Click-to-highlight remains; the manual element editor and source-metadata panel are absent.

@@ -14,3 +14,11 @@ export function createViewCamera(view,box,aspect){
  }
  camera.updateProjectionMatrix();return {camera,target};
 }
+
+// Resize the projection without changing the user's orbit, pan, or zoom.
+export function resizeViewCamera(camera,aspect){
+ if(!camera||!Number.isFinite(aspect)||aspect<=0)return;
+ if(camera.isOrthographicCamera){const halfHeight=(camera.top-camera.bottom)/2,centre=(camera.left+camera.right)/2;camera.left=centre-halfHeight*aspect;camera.right=centre+halfHeight*aspect;}
+ else camera.aspect=aspect;
+ camera.updateProjectionMatrix();
+}
