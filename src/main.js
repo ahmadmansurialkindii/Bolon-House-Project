@@ -14,7 +14,6 @@ const specs=[...familySpecs,['Overall proportions',[['widthScale','Transverse sc
 const layerNames={ground:'01  Source ground slab',stones:'02  Stone supports',columns:'03  Columns',ties:'04  Lower connecting members',floor:'05  Floor / horizontal surfaces',beams:'06  Upper beams',stairs:'07  Entrance stair',roof:'08  Roof assembly'};
 const visible=Object.fromEntries(Object.keys(layerNames).map(k=>[k,true]));
 $('#controls').innerHTML=specs.map(([title,items],i)=>`<details class="control-group" ${i===0?'open':''}><summary>${title}<span>+</span></summary>${items.map(([key,label,min,max,step])=>`<label class="slider-label" for="${key}">${label}<output id="${key}-value"></output></label><input id="${key}" data-key="${key}" type="range" min="${min}" max="${max}" step="${step}">`).join('')}</details>`).join('');
-$('#controls').insertAdjacentHTML('beforeend','<div class="repetition-summary" aria-live="polite"><p id="column-summary"></p><label class="slider-label" for="roof-spacing">Target roof-frame spacing (m)</label><input id="roof-spacing" type="range" min="0.45" max="6.3" step="0.05"><p id="frame-summary"></p><p>Spacing fits the existing frame span. Family sliders regenerate repeated members within the source spans. Stone supports follow the side columns.</p></div>');
 $('#layers').innerHTML=Object.entries(layerNames).map(([k,n])=>`<label class="layer"><input type="checkbox" data-layer="${k}" checked><span>${n}</span></label>`).join('');
 $('.metrics div:first-child span').textContent='COMPLETE SOURCE EXTENTS';
 // Keep supporting information available without consuming the modelling canvas.
@@ -43,10 +42,7 @@ function update(){return preserveView(camera,orbit,()=>{
  for(const item of editableItems){const transformed=familyTransform(item,rawPositions(item),p),geo=new THREE.BufferGeometry();geo.setAttribute('position',new THREE.Float32BufferAttribute(transformed,3));geo.setIndex(item.indices);geo.computeVertexNormals();geo.computeBoundingBox();geo.computeBoundingSphere();const mesh=new THREE.Mesh(geo,materials[item.group]);mesh.name=item.name;mesh.userData={group:item.group,elementKey:item.name,generated:!!item.generated};layers[item.group].add(mesh);sourceMeshes.push(mesh);bounds.union(geo.boundingBox);}
  {const size=bounds.isEmpty()?new THREE.Vector3():bounds.getSize(new THREE.Vector3());$('#footprint').textContent=`${size.x.toFixed(2)} × ${size.z.toFixed(2)} m`;$('#height').textContent=size.y.toFixed(2)+' m';}
  $('#viewer').dataset.instances=String(sourceMeshes.length);$('#viewer').dataset.editablePieces=String(editableItems.length);
- $('#roof-spacing').value=(9*p.lengthScale/(p.frameCount-1)).toFixed(3);
- $('#column-summary').textContent=`${sourceMeshes.filter(m=>m.userData.group==='columns').length} columns total · ${p.columnCount} per side row · ${(9*p.lengthScale/(p.columnCount-1)).toFixed(2)} m side spacing`;
  const counts=familyCounts(editableItems);$('#viewer').dataset.familyCounts=JSON.stringify(counts);
- $('#frame-summary').textContent=`${p.frameCount} roof frames · ${(9*p.lengthScale/(p.frameCount-1)).toFixed(2)} m frame spacing · ${counts.roofRibs} roof ribs · ${counts.roofLongitudinals} longitudinal roof members · ${counts.longitudinalBeams} longitudinal beams · ${counts.ties} lower ties · ${counts.steps} stair treads`;
  $('#viewer').dataset.columnCount=String(sourceMeshes.filter(m=>m.userData.group==='columns').length);$('#viewer').dataset.frameCount=String(p.frameCount);
 });}
 function setView(view){
@@ -72,7 +68,6 @@ async function load(){try{
  update();setView('axonometric');inspector=createInspector({container:$('.layer-panel'),viewer:$('#viewer'),meshes:sourceMeshes,groups:layers,materials,layerNames,getCamera:()=>camera,getRenderer:()=>renderer});renderer.setAnimationLoop(()=>{orbit.update();renderer.render(scene,camera);});$('#viewer').dataset.loaded='true';$('#viewer').dataset.instances=String(sourceMeshes.length);
  }catch(e){$('#render-error').hidden=false;$('#render-error').textContent='Unable to load the source model. '+e.message;console.error(e);}}
 $('#controls').addEventListener('input',e=>{const k=e.target.dataset.key;if(k){p[k]=Number(e.target.value);if(k.endsWith('Count'))rebuildComponents();sync();update();}});
-$('#roof-spacing').addEventListener('input',e=>{const spacing=Number(e.target.value);if(!Number.isFinite(spacing)||spacing<=0){update();return;}p.frameCount=Math.max(3,Math.min(15,Math.round(9*p.lengthScale/spacing)+1));rebuildComponents();sync();update();});
 $('#layers').addEventListener('change',e=>{const k=e.target.dataset.layer;if(k){visible[k]=e.target.checked;if(layers[k])layers[k].visible=visible[k];inspector?.visibilityChanged();}});
 $('#views').addEventListener('click',e=>{if(e.target.dataset.view)setView(e.target.dataset.view);});
 $('#reset').addEventListener('click',()=>{p={...baseline};rebuildComponents();sync();update();});
