@@ -89,3 +89,4 @@ button:focus-visible,input:focus-visible,select:focus-visible,summary:focus-visi
 }
 
 #review-summary{display:block;margin:8px 0}
+.repetition-summary{font-size:10px;color:#aaa;line-height:1.7;border-top:1px solid #333;padding-top:10px}.repetition-summary p{margin:7px 0}#roof-spacing{font:inherit;background:#191919;color:#eee;border:1px solid #444;border-radius:3px;padding:8px;margin-top:7px;width:100%}.selection-label{position:absolute;bottom:12px;left:12px;right:12px;width:fit-content;max-width:calc(100% - 24px);font-size:10px;background:#111e;color:#eee;border:1px solid #555;padding:8px 10px;border-radius:3px;pointer-events:none}

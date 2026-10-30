@@ -28,16 +28,18 @@ The supplied converted DAE writes transforms row-major, so the converter retains
 
 Earlier procedural geometry utilities remain as research experiments; the application entry point exclusively uses the DAE baseline.
 
-## Component inspection and group review
-
-Click a visible mesh without dragging, or choose any of the 132 source instances from the component list. The selected instance is highlighted with a bounding box. The inspector reports its source geometry ID, triangle count, and current X/Y/Z bounding extents. These are axis-aligned extents of the entire mesh, not inferred timber section dimensions or surveyed measurements. Geometry controls update the selected dimensions immediately.
-
-Change the display group and optionally mark that classification as checked by you. Changing a group clears its checked state. Reviews are stored locally in this browser under `toba-component-review-v1` and exported in parameter JSON (schema version 3). They are not shared with other browsers, nor treated as expert or historical validation. Reset group reviews restores original provisional classifications; reset reference parameters changes only geometric parameters. Layer visibility can hide the selected instance and clears its highlight. Selecting a hidden instance via the list still allows its metadata to be inspected; its mesh remains hidden until its group is enabled.
-
-This release supplies selection and review as groundwork for architectural parameter rules. Existing controls remain coordinate deformations; connection-aware column spacing and member regeneration have not been implemented.
-
 ## GitHub Pages
 
 The `Deploy GitHub Pages` workflow builds and tests `main`, uploads `dist`, and deploys using GitHub Pages. In the repository's **Settings → Pages → Build and deployment**, set **Source** to **GitHub Actions**. The Vite configuration uses relative asset URLs for the repository subdirectory. The expected address after a successful deployment is `https://ahmadmansurialkindii.github.io/Bolon-House-Project/`.
 
 If the workflow does not start after enabling Pages, run **Actions → Deploy GitHub Pages → Run workflow** against `main`. This URL is not live until GitHub finishes deployment successfully.
+
+## Component repetition
+
+The preset dropdown and source-component metadata panel have been removed. Click-to-highlight remains available in the viewport. Browser-saved grouping reviews from older releases are no longer applied.
+
+- Columns per side row: 3–17. The two side rows are regenerated from the nearest original column templates; matching stone supports follow the same station coordinates. End-face and interior posts remain unchanged. The live total includes those retained posts. Longitudinal connecting members retain their source geometry.
+- Roof frame count: 3–15 complete transverse frames, each with four source-derived members. New frame sections interpolate corresponding vertices between the five original source frames. This preserves the existing span, not a fixed spacing.
+- Target roof-frame spacing: chooses the nearest permitted integer frame count; actual equal spacing is displayed and changes with longitudinal scale. It may differ from the requested target because the source endpoints remain fixed.
+
+Reset restores all 132 baseline instances exactly (apart from centring and rendering precision). Export includes the repetition parameters. Bundled roof lattice/purlin geometry retains its original member counts. These are geometric exploration controls; altered column/frame arrangements are not structurally validated, and roof-frame interpolation does not guarantee contact with every curved roof member. Further architectural constraints and mesh separation are required before independently controlling every component family.
