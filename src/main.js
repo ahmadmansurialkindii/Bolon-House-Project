@@ -10,7 +10,7 @@ import {createViewCamera,resizeViewCamera,preserveView} from './view-camera.js';
 import {createInspector} from './inspection.js';
 let inspector;
 const $=s=>document.querySelector(s);
-let p={...baseline},wire=false,outlined=false,currentView='axonometric',sourceMeshes=[],model,layers={},orbit,camera,renderer,scene;
+let p={...baseline},wire=false,outlined=false,currentView='axonometric',sourceMeshes=[],model,layers={},orbit,camera,renderer,scene,groundGrid;
 const specs=[...familySpecs,['Overall proportions',[['widthScale','Transverse scale',.7,1.4,.01],['lengthScale','Longitudinal scale',.7,1.4,.01]]],['Vertical relationships',[['floor','Floor top datum',1.2,3,.01],['body','Floor-to-upper-beam span',1.2,3,.01],['roofScale','Roof vertical scale',.65,1.35,.01]]]];
 const layerNames={ground:'01  Source ground slab',stones:'02  Stone supports',columns:'03  Columns',ties:'04  Lower connecting members',floor:'05  Floor / horizontal surfaces',beams:'06  Upper beams',stairs:'07  Entrance stair',roof:'08  Roof assembly'};
 const visible=Object.fromEntries(Object.keys(layerNames).map(k=>[k,true]));
@@ -60,7 +60,7 @@ function setView(view){
 }
 function rebuildComponents(){editableItems=buildFamilyComponents(originals,p);}
 async function load(){try{
- scene=new THREE.Scene();scene.background=new THREE.Color(0x080808);renderer=new THREE.WebGLRenderer({antialias:true});renderer.setPixelRatio(Math.min(devicePixelRatio,2));$('#viewer').appendChild(renderer.domElement);camera=new THREE.PerspectiveCamera(36,1,.1,300);orbit=new OrbitControls(camera,renderer.domElement);orbit.enableDamping=false;orbit.maxDistance=100;orbit.minDistance=3;scene.add(new THREE.HemisphereLight(0xffffff,0x353535,2.6));const sun=new THREE.DirectionalLight(0xfff2dc,3);sun.position.set(-8,16,-6);scene.add(sun);const grid=new THREE.GridHelper(40,40,0x444444,0x222222);grid.position.y=-.02;scene.add(grid);
+ scene=new THREE.Scene();scene.background=new THREE.Color(0x080808);renderer=new THREE.WebGLRenderer({antialias:true});renderer.setPixelRatio(Math.min(devicePixelRatio,2));$('#viewer').appendChild(renderer.domElement);camera=new THREE.PerspectiveCamera(36,1,.1,300);orbit=new OrbitControls(camera,renderer.domElement);orbit.enableDamping=false;orbit.maxDistance=100;orbit.minDistance=3;scene.add(new THREE.HemisphereLight(0xffffff,0x353535,2.6));const sun=new THREE.DirectionalLight(0xfff2dc,3);sun.position.set(-8,16,-6);scene.add(sun);groundGrid=new THREE.GridHelper(40,40,0x444444,0x222222);groundGrid.position.y=-.02;scene.add(groundGrid);
  new ResizeObserver(()=>{const e=$('#viewer');renderer.setSize(e.clientWidth,e.clientHeight);resizeViewCamera(camera,Math.max(e.clientWidth,1)/Math.max(e.clientHeight,1));}).observe($('#viewer'));
  const response=await fetch(import.meta.env.BASE_URL+'models/toba-baseline.json');if(!response.ok)throw Error('Model request failed: '+response.status);const data=await response.json();
  model=new THREE.Group();scene.add(model);for(const k of Object.keys(layerNames)){layers[k]=new THREE.Group();model.add(layers[k]);layers[k].visible=visible[k];}
@@ -74,6 +74,9 @@ $('#views').addEventListener('click',e=>{if(e.target.dataset.view)setView(e.targ
 $('#reset').addEventListener('click',()=>{p={...baseline};rebuildComponents();sync();update();});
 function applyRenderStyle(){
  inspector?.clear();
+ if(scene)scene.background.set(outlined?0xffffff:0x080808);
+ if(groundGrid)groundGrid.visible=!outlined;
+ $('#viewer').style.background=outlined?'#ffffff':'#080808';
  for(const material of Object.values(materials)){material.wireframe=wire;material.polygonOffset=outlined;material.polygonOffsetFactor=1;material.polygonOffsetUnits=1;material.needsUpdate=true;}
  for(const mesh of sourceMeshes)setMeshOutline(mesh,outlined);
  $('#wire span').textContent=wire?'ON':'OFF';$('#wire').setAttribute('aria-pressed',String(wire));
@@ -91,3 +94,5 @@ sync();load();
 
 // Read-only camera state for regression checks and future saved-view support.
 export function getCameraState(){return camera&&orbit?{id:camera.uuid,position:camera.position.toArray(),quaternion:camera.quaternion.toArray(),up:camera.up.toArray(),zoom:camera.zoom,target:orbit.target.toArray(),projection:camera.projectionMatrix.toArray()}:null;}
+
+export function getRenderState(){return {outlined,wire,background:scene?.background.getHexString(),gridVisible:groundGrid?.visible};}

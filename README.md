@@ -71,4 +71,4 @@ The stair entrance is on the positive-Z end of the centred DAE model. Front, Axo
 
 ## Outlined render view
 
-Use **Render view** above the viewport to toggle shaded timber with black feature edges. Internal coplanar triangle diagonals are excluded; edges use depth testing so hidden edges remain occluded. Render outlines and wireframe are mutually exclusive. Outlines regenerate with slider changes and retain all view controls. This is a mesh-based visual style, not a native CAD BRep conversion.
+Use **Render view** above the viewport to toggle shaded timber with black feature edges on a clean white background without the grid. Switching it off restores the dark background and grid. Internal coplanar triangle diagonals are excluded; edges use depth testing so hidden edges remain occluded. Render outlines and wireframe are mutually exclusive. Outlines regenerate with slider changes and retain all view controls. This is a mesh-based visual style, not a native CAD BRep conversion.
