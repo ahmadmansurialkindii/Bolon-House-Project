@@ -24,7 +24,7 @@ The bundled mesh asset is self-contained at `public/models/toba-baseline.json`. 
 python3 scripts/convert_dae.py /path/to/Rumah+Batak+Toba.dae public/models/toba-baseline.json
 ```
 
-The supplied converted DAE writes transforms row-major, so the converter retains them and the app explicitly interprets their ordering. Source materials are replaced by neutral assembly colours. Coordinates, triangle connectivity and instance transforms are preserved. Overall bounds include the source ground slab and roof projections, not just the floor. Downloaded parameter JSON records its source and unverified scale. The application needs no remote assets or credentials.
+The supplied converted DAE writes transforms row-major, so the converter retains them and the app explicitly interprets their ordering. Source materials are replaced by neutral assembly colours. Coordinates, triangle connectivity and instance transforms are preserved. Overall bounds include the source ground slab and roof projections, not just the floor. The application needs no remote assets or credentials.
 
 Earlier procedural geometry utilities remain as research experiments; the application entry point exclusively uses the DAE baseline.
 
@@ -42,11 +42,11 @@ The preset dropdown and source-component metadata panel have been removed. Click
 - Roof frame count: 3–15 complete transverse frames, each with four source-derived members. New frame sections interpolate corresponding vertices between the five original source frames. This preserves the existing span, not a fixed spacing.
 - Target roof-frame spacing: chooses the nearest permitted integer frame count; actual equal spacing is displayed and changes with longitudinal scale. It may differ from the requested target because the source endpoints remain fixed.
 
-Reset restores the original 132 placements geometrically as 252 separated pieces (apart from centring and rendering precision). Export includes the repetition parameters. Bundled roof lattice/purlin geometry retains its original member counts. These are geometric exploration controls; altered column/frame arrangements are not structurally validated, and roof-frame interpolation does not guarantee contact with every curved roof member. Further architectural constraints and mesh separation are required before independently controlling every component family.
+Reset restores the original 132 placements geometrically as 252 separated pieces (apart from centring and rendering precision). Identified roof rib and longitudinal-member families have separate count sliders. Connected roof pieces outside those families retain their source counts. These are geometric exploration controls; altered column/frame arrangements are not structurally validated, and roof-frame interpolation does not guarantee contact with every curved roof member. Further architectural constraints are needed to ensure joints remain connected after changes.
 
 ## Viewport layout
 
-Axonometric is the initial and reset view. The canvas fills remaining screen height. Assembly layers and references open on demand beneath it, one at a time, with bounded panel scrolling. Fit model reframes the current view; Expand viewport enters browser fullscreen for the workspace where supported. The desktop sidebar scrolls separately and mobile retains a compact parameter area. Orthographic framing leaves an 8% margin around the projected model bounds.
+Axonometric is the initial and reset view. The canvas fills remaining screen height. Assembly layers open on demand beneath it, with bounded panel scrolling. The References panel and Export parameters button have been removed. Fit model reframes the current view; Expand viewport enters browser fullscreen for the workspace where supported. The desktop sidebar scrolls separately and mobile retains a compact parameter area. Orthographic framing leaves an 8% margin around the projected model bounds.
 
 
 ## Component-family sliders
@@ -57,14 +57,14 @@ The interface now uses family sliders instead of the individual transform/copy e
 | --- | --- |
 | Columns and stones | Columns per side row, column diameter, stone width/height scales |
 | Lower connecting members | Tie-level count, tie section scale |
-| Floor and upper beams | Longitudinal beams per source row, floor thickness, beam section scale |
+| Floor and upper beams | Independent lower-round, upper-longitudinal and outer-edge member counts and section scales; floor thickness; beam-cap size |
 | Roof | Frame count, transverse ribs per side, longitudinal members per side, roof member section scale |
 | Stairs | Tread count, stair width, tread thickness |
 | Ground base | Width, length and thickness scales |
 | Overall proportions | Width, length, floor elevation, body span and roof height scales |
 
-Roof frame spacing is also a slider. Counts resample the original station spans; changing house dimensions changes resulting spacing. Baseline roof rib and longitudinal-member counts are 27 and 33 per side. Lower ties form five series with four levels each; upper longitudinal beams form three source rows with two members each. Stair treads begin at seven. Source end-face/internal columns and connected roof pieces outside identified repeat families retain their counts.
+Roof frame spacing is also a slider. Counts resample the original station spans; changing house dimensions changes resulting spacing. Baseline roof rib and longitudinal-member counts are 27 and 33 per side. Lower ties form five series with four levels each; longitudinal beams have three independently controlled paired groups: lower round members (source IDs 5/11), upper beams (10/27), and outer edge members (13/14). Each defaults to two members. Stair treads begin at seven. Source end-face/internal columns and connected roof pieces outside identified repeat families retain their counts.
 
 Resampling places source templates at interpolated centre positions and bounding sizes, preserving topology. Roof frame interpolation separately uses corresponding source vertices. Modified ribs/battens are exploratory approximations and are not guaranteed to contact every adjacent curved member. Section scales are axis-based approximations, not engineered timber-section calculations; local joints and collisions are not solved. Default sliders restore all source geometry, with only horizontal centring and rendering precision differences.
 
-Export/import uses schema version 5 for family settings. Earlier files without individual overrides can load with default values for new sliders. Files containing the former individual transform overrides are rejected with an explanation instead of silently discarding those edits. Click-to-highlight remains; the manual element editor and source-metadata panel are absent.
+Import supports family parameter files; exporting is no longer exposed in the interface. Legacy `beamRowCount` values map to all three new beam counts when explicit new values are absent. Earlier files without individual overrides can load with default values for new sliders. Files containing the former individual transform overrides are rejected with an explanation instead of silently discarding those edits. Click-to-highlight remains; the manual element editor and source-metadata panel are absent.
