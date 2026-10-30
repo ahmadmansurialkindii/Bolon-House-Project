@@ -75,6 +75,23 @@ footer{height:23px;flex:none;padding:5px 24px;font-size:7px;letter-spacing:1.5px
  .layer-panel{left:12px;right:12px;bottom:64px;width:auto;max-height:55%;z-index:22}
  .selection-label{bottom:115px;max-width:90%}footer{height:20px;padding:4px 14px;font-size:6px}
 }
-@media(prefers-reduced-motion:reduce){button{transition:none}}
+/* Magnify controls without moving neighbouring controls or the model canvas. */
+:where(button,.brand,.control-group summary,.layer,input[type=range],input[type=checkbox]){transition:scale .16s ease,background .15s,border-color .15s,color .15s,filter .16s ease}
+.brand,.control-group summary,.layer{transform-origin:left center}
+.slider-label{cursor:pointer}
+input[type=checkbox]{cursor:pointer}
+@media(hover:hover) and (pointer:fine){
+ button:enabled:hover{scale:1.06}
+ .brand:hover,.control-group summary:hover,.layer:hover{scale:1.025;color:#fff}
+ input[type=range]:enabled:hover{scale:1.025 1.2;filter:drop-shadow(0 0 3px #ffffff35)}
+ input[type=checkbox]:enabled:hover{scale:1.15}
+}
+button:enabled:focus-visible{scale:1.06}
+.brand:focus-visible,.control-group summary:focus-visible{scale:1.025}
+input[type=range]:enabled:focus-visible{scale:1.025 1.2}
+input[type=checkbox]:enabled:focus-visible{scale:1.15}
+@media(prefers-reduced-motion:reduce){
+ :where(button,.brand,.control-group summary,.layer,input[type=range],input[type=checkbox]){transition:none;scale:none!important}
+}
 
 .viewer-bottom{display:flex;gap:7px}#render-style{font-size:9px;border:1px solid #ffffff20;background:#121212b8;padding:7px 10px;color:#aaa}#render-style span{margin-left:8px;color:#ddd}#render-style[aria-pressed=true]{background:#eee;color:#111}#render-style[aria-pressed=true] span{color:#111}
