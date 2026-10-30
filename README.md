@@ -43,3 +43,7 @@ The preset dropdown and source-component metadata panel have been removed. Click
 - Target roof-frame spacing: chooses the nearest permitted integer frame count; actual equal spacing is displayed and changes with longitudinal scale. It may differ from the requested target because the source endpoints remain fixed.
 
 Reset restores all 132 baseline instances exactly (apart from centring and rendering precision). Export includes the repetition parameters. Bundled roof lattice/purlin geometry retains its original member counts. These are geometric exploration controls; altered column/frame arrangements are not structurally validated, and roof-frame interpolation does not guarantee contact with every curved roof member. Further architectural constraints and mesh separation are required before independently controlling every component family.
+
+## Viewport layout
+
+Axonometric is the initial and reset view. The canvas fills remaining screen height. Assembly layers and references open on demand beneath it, one at a time, with bounded panel scrolling. Fit model reframes the current view; Expand viewport enters browser fullscreen for the workspace where supported. The desktop sidebar scrolls separately and mobile retains a compact parameter area. Orthographic framing leaves an 8% margin around the projected model bounds.

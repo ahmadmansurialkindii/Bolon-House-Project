@@ -9,7 +9,7 @@ export function createViewCamera(view,box,aspect){
  if(camera.isOrthographicCamera){
   let halfX=0,halfY=0;const point=new THREE.Vector3();
   for(const x of [box.min.x,box.max.x])for(const y of [box.min.y,box.max.y])for(const z of [box.min.z,box.max.z]){point.set(x,y,z).applyMatrix4(camera.matrixWorldInverse);halfX=Math.max(halfX,Math.abs(point.x));halfY=Math.max(halfY,Math.abs(point.y));}
-  const halfHeight=Math.max(halfY,halfX/aspect,.1)*1.12;
+  const halfHeight=Math.max(halfY,halfX/aspect,.1)*1.08;
   camera.left=-halfHeight*aspect;camera.right=halfHeight*aspect;camera.top=halfHeight;camera.bottom=-halfHeight;
  }
  camera.updateProjectionMatrix();return {camera,target};
