@@ -13,7 +13,7 @@ let p={...baseline},wire=false,currentView='axonometric',sourceMeshes=[],model,l
 const specs=[...familySpecs,['Overall proportions',[['widthScale','Transverse scale',.7,1.4,.01],['lengthScale','Longitudinal scale',.7,1.4,.01]]],['Vertical relationships',[['floor','Floor top datum',1.2,3,.01],['body','Floor-to-upper-beam span',1.2,3,.01],['roofScale','Roof vertical scale',.65,1.35,.01]]]];
 const layerNames={ground:'01  Source ground slab',stones:'02  Stone supports',columns:'03  Columns',ties:'04  Lower connecting members',floor:'05  Floor / horizontal surfaces',beams:'06  Upper beams',stairs:'07  Entrance stair',roof:'08  Roof assembly'};
 const visible=Object.fromEntries(Object.keys(layerNames).map(k=>[k,true]));
-$('#controls').innerHTML=specs.map(([title,items])=>`<details class="control-group" open><summary>${title}<span>+</span></summary>${items.map(([key,label,min,max,step])=>`<label class="slider-label" for="${key}">${label}<output id="${key}-value"></output></label><input id="${key}" data-key="${key}" type="range" min="${min}" max="${max}" step="${step}">`).join('')}</details>`).join('');
+$('#controls').innerHTML=specs.map(([title,items],i)=>`<details class="control-group" ${i===0?'open':''}><summary>${title}<span>+</span></summary>${items.map(([key,label,min,max,step])=>`<label class="slider-label" for="${key}">${label}<output id="${key}-value"></output></label><input id="${key}" data-key="${key}" type="range" min="${min}" max="${max}" step="${step}">`).join('')}</details>`).join('');
 $('#controls').insertAdjacentHTML('beforeend','<div class="repetition-summary" aria-live="polite"><p id="column-summary"></p><label class="slider-label" for="roof-spacing">Target roof-frame spacing (m)</label><input id="roof-spacing" type="range" min="0.45" max="6.3" step="0.05"><p id="frame-summary"></p><p>Spacing fits the existing frame span. Family sliders regenerate repeated members within the source spans. Stone supports follow the side columns.</p></div>');
 $('#layers').innerHTML=Object.entries(layerNames).map(([k,n])=>`<label class="layer"><input type="checkbox" data-layer="${k}" checked><span>${n}</span></label>`).join('');
 $('.metrics div:first-child span').textContent='COMPLETE SOURCE EXTENTS';
@@ -22,10 +22,18 @@ const layerPanel=$('.layer-panel');
 layerPanel.hidden=true;
 const dock=document.createElement('div');dock.className='viewport-tools';dock.innerHTML='<div><button id="toggle-layers" aria-expanded="false">Assembly layers</button></div><div><button id="fit-view" title="Fit model to the current view">Fit model</button><button id="fullscreen">Expand viewport</button></div>';
 $('.metrics').after(dock);
-$('#toggle-layers').addEventListener('click',()=>{layerPanel.hidden=!layerPanel.hidden;$('#toggle-layers').setAttribute('aria-expanded',String(!layerPanel.hidden));});
+$('#toggle-layers').addEventListener('click',()=>{if(smallScreen.matches)showParameters(false);layerPanel.hidden=!layerPanel.hidden;$('#toggle-layers').setAttribute('aria-expanded',String(!layerPanel.hidden));});
 $('#fit-view').addEventListener('click',()=>setView(currentView));
 $('#fullscreen').addEventListener('click',async()=>{try{if(document.fullscreenElement)await document.exitFullscreen();else await $('.workspace').requestFullscreen();}catch{$('#fullscreen').textContent='Fullscreen unavailable';}});
 document.addEventListener('fullscreenchange',()=>$('#fullscreen').textContent=document.fullscreenElement?'Exit expanded view':'Expand viewport');
+// Controls float above the canvas and never intercept canvas gestures.
+const parameterPanel=$('#parameter-panel'),smallScreen=matchMedia('(max-width:680px)');
+function showParameters(open){if(open&&smallScreen.matches){layerPanel.hidden=true;$('#toggle-layers').setAttribute('aria-expanded','false');}parameterPanel.hidden=!open;$('#toggle-parameters').setAttribute('aria-expanded',String(open));}
+showParameters(!smallScreen.matches);
+$('#toggle-parameters').addEventListener('click',()=>showParameters(parameterPanel.hidden));
+$('#close-parameters').addEventListener('click',()=>{showParameters(false);$('#toggle-parameters').focus({preventScroll:true});});
+smallScreen.addEventListener('change',e=>showParameters(!e.matches));
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!document.fullscreenElement){showParameters(false);layerPanel.hidden=true;$('#toggle-layers').setAttribute('aria-expanded','false');}});
 function sync(){for(const [,items]of specs)for(const[k]of items){$('#'+k).value=p[k];$('#'+k+'-value').textContent=k.endsWith('Count')?String(p[k]):k.endsWith('Scale')?p[k].toFixed(2)+'×':p[k].toFixed(2)+' m';}}
 const materials={};for(const k of Object.keys(layerNames))materials[k]=new THREE.MeshStandardMaterial({color:({ground:0x343434,stones:0x8c8c8c,columns:0xa48b65,ties:0xb09870,floor:0xb99c70,beams:0xb99b70,stairs:0xb69870,roof:0xb6a481})[k],roughness:.9,side:THREE.DoubleSide});
 function rawPositions(item){return Float64Array.from(item.base,(_,i)=>{const k=i-i%3;return deform(item.base[k],item.base[k+1],item.base[k+2],p)[i%3];});}
