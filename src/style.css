@@ -76,3 +76,5 @@ footer{height:23px;flex:none;padding:5px 24px;font-size:7px;letter-spacing:1.5px
  .selection-label{bottom:115px;max-width:90%}footer{height:20px;padding:4px 14px;font-size:6px}
 }
 @media(prefers-reduced-motion:reduce){button{transition:none}}
+
+.viewer-bottom{display:flex;gap:7px}#render-style{font-size:9px;border:1px solid #ffffff20;background:#121212b8;padding:7px 10px;color:#aaa}#render-style span{margin-left:8px;color:#ddd}#render-style[aria-pressed=true]{background:#eee;color:#111}#render-style[aria-pressed=true] span{color:#111}

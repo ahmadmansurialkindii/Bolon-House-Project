@@ -68,3 +68,7 @@ Resampling places source templates at interpolated centre positions and bounding
 Import supports family parameter files; exporting is no longer exposed in the interface. Legacy `beamRowCount` values map to the lower-round and upper-beam counts when explicit new values are absent. Removed roof-section, outer-edge and ground-base settings are ignored; those families retain their baseline geometry under family-specific edits. Earlier files without individual overrides can load with default values for new sliders. Files containing the former individual transform overrides are rejected with an explanation instead of silently discarding those edits. Click-to-highlight remains; the manual element editor and source-metadata panel are absent.
 
 The stair entrance is on the positive-Z end of the centred DAE model. Front, Axon and 3D presets all view from this side; the rear-facing negative-Z direction is not used as the startup view.
+
+## Outlined render view
+
+Use **Render view** above the viewport to toggle shaded timber with black feature edges. Internal coplanar triangle diagonals are excluded; edges use depth testing so hidden edges remain occluded. Render outlines and wireframe are mutually exclusive. Outlines regenerate with slider changes and retain all view controls. This is a mesh-based visual style, not a native CAD BRep conversion.

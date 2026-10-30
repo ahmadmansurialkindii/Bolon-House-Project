@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
 import {baseline,deform} from './dae-deform.js';
 import './style.css';
+import {setMeshOutline,disposeMesh} from './render-outline.js';
 import {buildFamilyComponents,familyTransform,familySpecs,familyCounts} from './family-parameters.js';
 let editableItems=[];
 let originals=[];
@@ -9,7 +10,7 @@ import {createViewCamera,resizeViewCamera,preserveView} from './view-camera.js';
 import {createInspector} from './inspection.js';
 let inspector;
 const $=s=>document.querySelector(s);
-let p={...baseline},wire=false,currentView='axonometric',sourceMeshes=[],model,layers={},orbit,camera,renderer,scene;
+let p={...baseline},wire=false,outlined=false,currentView='axonometric',sourceMeshes=[],model,layers={},orbit,camera,renderer,scene;
 const specs=[...familySpecs,['Overall proportions',[['widthScale','Transverse scale',.7,1.4,.01],['lengthScale','Longitudinal scale',.7,1.4,.01]]],['Vertical relationships',[['floor','Floor top datum',1.2,3,.01],['body','Floor-to-upper-beam span',1.2,3,.01],['roofScale','Roof vertical scale',.65,1.35,.01]]]];
 const layerNames={ground:'01  Source ground slab',stones:'02  Stone supports',columns:'03  Columns',ties:'04  Lower connecting members',floor:'05  Floor / horizontal surfaces',beams:'06  Upper beams',stairs:'07  Entrance stair',roof:'08  Roof assembly'};
 const visible=Object.fromEntries(Object.keys(layerNames).map(k=>[k,true]));
@@ -37,9 +38,9 @@ function sync(){for(const [,items]of specs)for(const[k]of items){$('#'+k).value=
 const materials={};for(const k of Object.keys(layerNames))materials[k]=new THREE.MeshStandardMaterial({color:({ground:0x343434,stones:0x8c8c8c,columns:0xa48b65,ties:0xb09870,floor:0xb99c70,beams:0xb99b70,stairs:0xb69870,roof:0xb6a481})[k],roughness:.9,side:THREE.DoubleSide});
 function rawPositions(item){return Float64Array.from(item.base,(_,i)=>{const k=i-i%3;return deform(item.base[k],item.base[k+1],item.base[k+2],p)[i%3];});}
 function update(){return preserveView(camera,orbit,()=>{
- inspector?.clear();for(const mesh of sourceMeshes){mesh.removeFromParent();mesh.geometry.dispose();}sourceMeshes.length=0;
+ inspector?.clear();for(const mesh of sourceMeshes){mesh.removeFromParent();disposeMesh(mesh);}sourceMeshes.length=0;
  const bounds=new THREE.Box3();
- for(const item of editableItems){const transformed=familyTransform(item,rawPositions(item),p),geo=new THREE.BufferGeometry();geo.setAttribute('position',new THREE.Float32BufferAttribute(transformed,3));geo.setIndex(item.indices);geo.computeVertexNormals();geo.computeBoundingBox();geo.computeBoundingSphere();const mesh=new THREE.Mesh(geo,materials[item.group]);mesh.name=item.name;mesh.userData={group:item.group,elementKey:item.name,generated:!!item.generated};layers[item.group].add(mesh);sourceMeshes.push(mesh);bounds.union(geo.boundingBox);}
+ for(const item of editableItems){const transformed=familyTransform(item,rawPositions(item),p),geo=new THREE.BufferGeometry();geo.setAttribute('position',new THREE.Float32BufferAttribute(transformed,3));geo.setIndex(item.indices);geo.computeVertexNormals();geo.computeBoundingBox();geo.computeBoundingSphere();const mesh=new THREE.Mesh(geo,materials[item.group]);mesh.name=item.name;mesh.userData={group:item.group,elementKey:item.name,generated:!!item.generated};setMeshOutline(mesh,outlined);layers[item.group].add(mesh);sourceMeshes.push(mesh);bounds.union(geo.boundingBox);}
  {const size=bounds.isEmpty()?new THREE.Vector3():bounds.getSize(new THREE.Vector3());$('#footprint').textContent=`${size.x.toFixed(2)} × ${size.z.toFixed(2)} m`;$('#height').textContent=size.y.toFixed(2)+' m';}
  $('#viewer').dataset.instances=String(sourceMeshes.length);$('#viewer').dataset.editablePieces=String(editableItems.length);
  const counts=familyCounts(editableItems);$('#viewer').dataset.familyCounts=JSON.stringify(counts);
@@ -71,7 +72,16 @@ $('#controls').addEventListener('input',e=>{const k=e.target.dataset.key;if(k){p
 $('#layers').addEventListener('change',e=>{const k=e.target.dataset.layer;if(k){visible[k]=e.target.checked;if(layers[k])layers[k].visible=visible[k];inspector?.visibilityChanged();}});
 $('#views').addEventListener('click',e=>{if(e.target.dataset.view)setView(e.target.dataset.view);});
 $('#reset').addEventListener('click',()=>{p={...baseline};rebuildComponents();sync();update();});
-$('#wire').addEventListener('click',()=>{wire=!wire;Object.values(materials).forEach(m=>m.wireframe=wire);$('#wire span').textContent=wire?'ON':'OFF';inspector?.syncWireframe();});
+function applyRenderStyle(){
+ inspector?.clear();
+ for(const material of Object.values(materials)){material.wireframe=wire;material.polygonOffset=outlined;material.polygonOffsetFactor=1;material.polygonOffsetUnits=1;material.needsUpdate=true;}
+ for(const mesh of sourceMeshes)setMeshOutline(mesh,outlined);
+ $('#wire span').textContent=wire?'ON':'OFF';$('#wire').setAttribute('aria-pressed',String(wire));
+ $('#render-style span').textContent=outlined?'ON':'OFF';$('#render-style').setAttribute('aria-pressed',String(outlined));
+ $('#viewer').dataset.renderStyle=outlined?'outlined':wire?'wireframe':'timber';inspector?.syncWireframe();
+}
+$('#render-style').addEventListener('click',()=>{outlined=!outlined;if(outlined)wire=false;applyRenderStyle();});
+$('#wire').addEventListener('click',()=>{wire=!wire;if(wire)outlined=false;applyRenderStyle();});
 const importButton=document.createElement('button');importButton.className='reset';importButton.id='import-parameters';importButton.textContent='Import parameters';$('#reset').after(importButton);
 const importFile=document.createElement('input');importFile.type='file';importFile.accept='.json,application/json';importFile.hidden=true;importFile.id='import-file';importButton.after(importFile);
 const importStatus=document.createElement('p');importStatus.className='editor-help';importStatus.setAttribute('role','status');importFile.after(importStatus);
