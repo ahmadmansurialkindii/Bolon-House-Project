@@ -10,7 +10,7 @@ import {createViewCamera,resizeViewCamera,preserveView} from './view-camera.js';
 import {createInspector} from './inspection.js';
 let inspector;
 const $=s=>document.querySelector(s);
-let p={...baseline},wire=false,outlined=false,currentView='axonometric',sourceMeshes=[],model,layers={},orbit,camera,renderer,scene,groundGrid;
+let p={...baseline},wire=false,outlined=false,currentView='axonometric',sourceMeshes=[],model,layers={},orbit,camera,renderer,scene,groundGrid,keyLight;
 const specs=[...familySpecs,['Overall proportions',[['widthScale','Transverse scale',.7,1.4,.01],['lengthScale','Longitudinal scale',.7,1.4,.01]]],['Vertical relationships',[['floor','Floor top datum',1.2,3,.01],['body','Floor-to-upper-beam span',1.2,3,.01],['roofScale','Roof vertical scale',.65,1.35,.01]]]];
 const layerNames={ground:'01  Source ground slab',stones:'02  Stone supports',columns:'03  Columns',ties:'04  Lower connecting members',floor:'05  Floor / horizontal surfaces',beams:'06  Upper beams',stairs:'07  Entrance stair',roof:'08  Roof assembly'};
 const visible=Object.fromEntries(Object.keys(layerNames).map(k=>[k,true]));
@@ -36,6 +36,7 @@ smallScreen.addEventListener('change',e=>showParameters(!e.matches));
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!document.fullscreenElement){showParameters(false);layerPanel.hidden=true;$('#toggle-layers').setAttribute('aria-expanded','false');}});
 function sync(){for(const [,items]of specs)for(const[k]of items){$('#'+k).value=p[k];$('#'+k+'-value').textContent=k.endsWith('Count')?String(p[k]):k.endsWith('Scale')?p[k].toFixed(2)+'×':p[k].toFixed(2)+' m';}}
 const materials={};for(const k of Object.keys(layerNames))materials[k]=new THREE.MeshStandardMaterial({color:({ground:0x343434,stones:0x8c8c8c,columns:0xa48b65,ties:0xb09870,floor:0xb99c70,beams:0xb99b70,stairs:0xb69870,roof:0xb6a481})[k],roughness:.9,side:THREE.DoubleSide});
+for(const material of Object.values(materials))material.userData.originalColor=material.color.getHex();
 function rawPositions(item){return Float64Array.from(item.base,(_,i)=>{const k=i-i%3;return deform(item.base[k],item.base[k+1],item.base[k+2],p)[i%3];});}
 function update(){return preserveView(camera,orbit,()=>{
  inspector?.clear();for(const mesh of sourceMeshes){mesh.removeFromParent();disposeMesh(mesh);}sourceMeshes.length=0;
@@ -60,7 +61,7 @@ function setView(view){
 }
 function rebuildComponents(){editableItems=buildFamilyComponents(originals,p);}
 async function load(){try{
- scene=new THREE.Scene();scene.background=new THREE.Color(0x080808);renderer=new THREE.WebGLRenderer({antialias:true});renderer.setPixelRatio(Math.min(devicePixelRatio,2));$('#viewer').appendChild(renderer.domElement);camera=new THREE.PerspectiveCamera(36,1,.1,300);orbit=new OrbitControls(camera,renderer.domElement);orbit.enableDamping=false;orbit.maxDistance=100;orbit.minDistance=3;scene.add(new THREE.HemisphereLight(0xffffff,0x353535,2.6));const sun=new THREE.DirectionalLight(0xfff2dc,3);sun.position.set(-8,16,-6);scene.add(sun);groundGrid=new THREE.GridHelper(40,40,0x444444,0x222222);groundGrid.position.y=-.02;scene.add(groundGrid);
+ scene=new THREE.Scene();scene.background=new THREE.Color(0x080808);renderer=new THREE.WebGLRenderer({antialias:true});renderer.setPixelRatio(Math.min(devicePixelRatio,2));$('#viewer').appendChild(renderer.domElement);camera=new THREE.PerspectiveCamera(36,1,.1,300);orbit=new OrbitControls(camera,renderer.domElement);orbit.enableDamping=false;orbit.maxDistance=100;orbit.minDistance=3;scene.add(new THREE.HemisphereLight(0xffffff,0x353535,2.6));keyLight=new THREE.DirectionalLight(0xfff2dc,3);keyLight.position.set(-8,16,-6);scene.add(keyLight);groundGrid=new THREE.GridHelper(40,40,0x444444,0x222222);groundGrid.position.y=-.02;scene.add(groundGrid);
  new ResizeObserver(()=>{const e=$('#viewer');renderer.setSize(e.clientWidth,e.clientHeight);resizeViewCamera(camera,Math.max(e.clientWidth,1)/Math.max(e.clientHeight,1));}).observe($('#viewer'));
  const response=await fetch(import.meta.env.BASE_URL+'models/toba-baseline.json');if(!response.ok)throw Error('Model request failed: '+response.status);const data=await response.json();
  model=new THREE.Group();scene.add(model);for(const k of Object.keys(layerNames)){layers[k]=new THREE.Group();model.add(layers[k]);layers[k].visible=visible[k];}
@@ -76,8 +77,9 @@ function applyRenderStyle(){
  inspector?.clear();
  if(scene)scene.background.set(outlined?0xffffff:0x080808);
  if(groundGrid)groundGrid.visible=!outlined;
+ if(keyLight)keyLight.color.setHex(outlined?0xffffff:0xfff2dc);
  $('#viewer').style.background=outlined?'#ffffff':'#080808';
- for(const material of Object.values(materials)){material.wireframe=wire;material.polygonOffset=outlined;material.polygonOffsetFactor=1;material.polygonOffsetUnits=1;material.needsUpdate=true;}
+ for(const material of Object.values(materials)){material.color.setHex(outlined?0xffffff:material.userData.originalColor);material.wireframe=wire;material.polygonOffset=outlined;material.polygonOffsetFactor=1;material.polygonOffsetUnits=1;material.needsUpdate=true;}
  for(const mesh of sourceMeshes)setMeshOutline(mesh,outlined);
  $('#wire span').textContent=wire?'ON':'OFF';$('#wire').setAttribute('aria-pressed',String(wire));
  $('#render-style span').textContent=outlined?'ON':'OFF';$('#render-style').setAttribute('aria-pressed',String(outlined));
@@ -95,4 +97,4 @@ sync();load();
 // Read-only camera state for regression checks and future saved-view support.
 export function getCameraState(){return camera&&orbit?{id:camera.uuid,position:camera.position.toArray(),quaternion:camera.quaternion.toArray(),up:camera.up.toArray(),zoom:camera.zoom,target:orbit.target.toArray(),projection:camera.projectionMatrix.toArray()}:null;}
 
-export function getRenderState(){return {outlined,wire,background:scene?.background.getHexString(),gridVisible:groundGrid?.visible};}
+export function getRenderState(){return {outlined,wire,background:scene?.background.getHexString(),gridVisible:groundGrid?.visible,materialColors:Object.values(materials).map(m=>m.color.getHexString())};}
