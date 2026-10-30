@@ -16,7 +16,6 @@ const visible=Object.fromEntries(Object.keys(layerNames).map(k=>[k,true]));
 $('#controls').innerHTML=specs.map(([title,items])=>`<details class="control-group" open><summary>${title}<span>+</span></summary>${items.map(([key,label,min,max,step])=>`<label class="slider-label" for="${key}">${label}<output id="${key}-value"></output></label><input id="${key}" data-key="${key}" type="range" min="${min}" max="${max}" step="${step}">`).join('')}</details>`).join('');
 $('#controls').insertAdjacentHTML('beforeend','<div class="repetition-summary" aria-live="polite"><p id="column-summary"></p><label class="slider-label" for="roof-spacing">Target roof-frame spacing (m)</label><input id="roof-spacing" type="range" min="0.45" max="6.3" step="0.05"><p id="frame-summary"></p><p>Spacing fits the existing frame span. Family sliders regenerate repeated members within the source spans. Stone supports follow the side columns.</p></div>');
 $('#layers').innerHTML=Object.entries(layerNames).map(([k,n])=>`<label class="layer"><input type="checkbox" data-layer="${k}" checked><span>${n}</span></label>`).join('');
-$('.intro').textContent='Explore the uploaded Toba Batak model. Its original roof profile, framing, and support positions form the baseline.';
 $('.metrics div:first-child span').textContent='COMPLETE SOURCE EXTENTS';
 $('.metrics div:last-child strong').textContent='DAE-based mesh study';
 // Keep supporting information available without consuming the modelling canvas.
