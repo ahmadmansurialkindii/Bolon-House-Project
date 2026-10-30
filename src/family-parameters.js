@@ -3,10 +3,10 @@ import {splitParts,measure} from './element-parameters.js';
 
 export const familyDefaults={columnDiameter:.25,roundBeamCount:2,upperBeamCount:2,roundBeamScale:1,upperBeamScale:1,stoneWidthScale:1,stoneHeightScale:1,tieLevelCount:4,tieSectionScale:1,floorThicknessScale:1,beamSectionScale:1,roofRibCount:27,roofBattenCount:33,stepCount:7,stairWidthScale:1,stepThicknessScale:1};
 export const familySpecs=[
- ['Columns & stone supports', [['columnCount','Columns per side row',3,17,1],['columnDiameter','Column diameter',.12,.5,.01],['stoneWidthScale','Stone width scale',.5,2,.05],['stoneHeightScale','Stone height scale',.5,2,.05]]],
+ ['FOUNDATION', [['columnCount','Columns per side row',3,17,1],['columnDiameter','Column diameter',.12,.5,.01],['stoneWidthScale','Stone width scale',.5,2,.05],['stoneHeightScale','Stone height scale',.5,2,.05]]],
  ['Lower connecting members', [['tieLevelCount','Horizontal tie levels',1,8,1],['tieSectionScale','Tie section scale',.5,2,.05]]],
  ['Floor & upper beams', [['roundBeamCount','Lower round members',2,7,1],['roundBeamScale','Lower round member size',.5,2,.05],['upperBeamCount','Upper longitudinal beams',2,7,1],['upperBeamScale','Upper beam section scale',.5,2,.05],['floorThicknessScale','Floor thickness scale',.5,3,.05],['beamSectionScale','Beam cap size scale',.5,2,.05]]],
- ['Roof components', [['frameCount','Roof frame count',3,15,1],['roofRibCount','Roof ribs per side',5,55,1],['roofBattenCount','Longitudinal roof members per side',5,65,1]]],
+ ['ROOF', [['frameCount','Roof frame count',3,15,1],['roofRibCount','Roof ribs per side',5,55,1],['roofBattenCount','Longitudinal roof members per side',5,65,1]]],
  ['Entrance stair', [['stepCount','Stair tread count',3,15,1],['stairWidthScale','Stair width scale',.6,1.8,.05],['stepThicknessScale','Tread thickness scale',.5,2,.05]]]
 ];
 const parentId=item=>Number((item.parentName||item.name).replace('empty_','').split('::')[0]);

@@ -11,7 +11,7 @@ import {createInspector} from './inspection.js';
 let inspector;
 const $=s=>document.querySelector(s);
 let p={...baseline},wire=false,outlined=false,currentView='axonometric',sourceMeshes=[],model,layers={},orbit,camera,renderer,scene,groundGrid,keyLight;
-const specs=[...familySpecs,['Overall proportions',[['widthScale','Transverse scale',.7,1.4,.01],['lengthScale','Longitudinal scale',.7,1.4,.01]]],['Vertical relationships',[['floor','Floor top datum',1.2,3,.01],['body','Floor-to-upper-beam span',1.2,3,.01],['roofScale','Roof vertical scale',.65,1.35,.01]]]];
+const specs=[...familySpecs,['PROPORTIONS',[['widthScale','Transverse scale',.7,1.4,.01],['lengthScale','Longitudinal scale',.7,1.4,.01]]],['Vertical relationships',[['floor','Floor top datum',1.2,3,.01],['body','Floor-to-upper-beam span',1.2,3,.01],['roofScale','Roof vertical scale',.65,1.35,.01]]]];
 const layerNames={ground:'01  Source ground slab',stones:'02  Stone supports',columns:'03  Columns',ties:'04  Lower connecting members',floor:'05  Floor / horizontal surfaces',beams:'06  Upper beams',stairs:'07  Entrance stair',roof:'08  Roof assembly'};
 const visible=Object.fromEntries(Object.keys(layerNames).map(k=>[k,true]));
 $('#controls').innerHTML=specs.map(([title,items],i)=>`<details class="control-group" ${i===0?'open':''}><summary>${title}<span>+</span></summary>${items.map(([key,label,min,max,step])=>`<label class="slider-label" for="${key}">${label}<output id="${key}-value"></output></label><input id="${key}" data-key="${key}" type="range" min="${min}" max="${max}" step="${step}">`).join('')}</details>`).join('');
