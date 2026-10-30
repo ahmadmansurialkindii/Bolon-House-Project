@@ -17,7 +17,6 @@ $('#controls').innerHTML=specs.map(([title,items])=>`<details class="control-gro
 $('#controls').insertAdjacentHTML('beforeend','<div class="repetition-summary" aria-live="polite"><p id="column-summary"></p><label class="slider-label" for="roof-spacing">Target roof-frame spacing (m)</label><input id="roof-spacing" type="range" min="0.45" max="6.3" step="0.05"><p id="frame-summary"></p><p>Spacing fits the existing frame span. Family sliders regenerate repeated members within the source spans. Stone supports follow the side columns.</p></div>');
 $('#layers').innerHTML=Object.entries(layerNames).map(([k,n])=>`<label class="layer"><input type="checkbox" data-layer="${k}" checked><span>${n}</span></label>`).join('');
 $('.metrics div:first-child span').textContent='COMPLETE SOURCE EXTENTS';
-$('.metrics div:last-child strong').textContent='DAE-based mesh study';
 // Keep supporting information available without consuming the modelling canvas.
 const layerPanel=$('.layer-panel');
 layerPanel.hidden=true;
@@ -52,7 +51,6 @@ function setView(view){
  $('#viewer').dataset.projection=camera.isOrthographicCamera?'orthographic':'perspective';
  $('#viewer').dataset.view=view;
  document.querySelectorAll('#views [data-view]').forEach(b=>{b.classList.toggle('active',b.dataset.view===view);b.setAttribute('aria-pressed',String(b.dataset.view===view));});
- $('.viewer-bottom>span').textContent=orbit.enableRotate?'Drag to orbit · Scroll to zoom · Right-drag to pan':'Scroll to zoom · Drag to pan · Orthographic projection';
  orbit.mouseButtons.LEFT=orbit.enableRotate?THREE.MOUSE.ROTATE:THREE.MOUSE.PAN;
 }
 function rebuildComponents(){editableItems=buildFamilyComponents(originals,p);}

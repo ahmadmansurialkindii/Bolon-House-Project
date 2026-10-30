@@ -104,3 +104,5 @@ aside h1{font-size:27px;line-height:1.13;letter-spacing:-.6px;max-width:240px}
 .workspace:fullscreen #viewer{min-height:0}
 @media(max-width:680px){.viewport-tools{gap:5px}.viewport-tools>div{gap:4px}.viewport-tools button{font-size:9px;padding:7px 6px}.layer-panel,.evidence{max-height:110px}.metrics{padding:9px 0}.viewer-bottom{margin:5px 0}.workspace{overflow-y:auto}}
 .element-editor{padding-top:17px}.element-editor .select-label{margin:13px 0 7px}.editor-help{font-size:10px;color:#aaa;line-height:1.6}.element-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px 9px;margin:14px 0}.element-grid label{font-size:10px;color:#ccc;min-width:0}.element-grid input,.element-grid select{display:block;width:100%;background:#191919;border:1px solid #444;color:#eee;border-radius:3px;font:inherit;padding:8px 6px;margin-top:6px}.element-editor button{font-size:10px;padding:8px}.element-editor select{font-size:10px}#element-fields{margin-top:8px}
+
+.metrics{grid-template-columns:repeat(2,minmax(0,1fr))}.viewer-bottom{justify-content:flex-end}
