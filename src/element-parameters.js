@@ -1,15 +1,5 @@
 import * as THREE from 'three';
 
-export const defaultElement={scaleX:1,scaleY:1,scaleZ:1,offsetX:0,offsetY:0,offsetZ:0,rotateX:0,rotateY:0,rotateZ:0,count:1,spacing:1,axis:'z'};
-export const elementLimits={scaleX:[.05,10],scaleY:[.05,10],scaleZ:[.05,10],offsetX:[-30,30],offsetY:[-30,30],offsetZ:[-30,30],rotateX:[-180,180],rotateY:[-180,180],rotateZ:[-180,180],count:[0,12],spacing:[0,20]};
-export function validateElement(raw={}){
- const result={...defaultElement};
- for(const [k,[min,max]]of Object.entries(elementLimits))if(Object.hasOwn(raw,k)){
-  const n=raw[k];if(typeof n!=='number'||!Number.isFinite(n)||n<min||n>max||(k==='count'&&!Number.isInteger(n)))throw Error(`Invalid element ${k}`);result[k]=n;
- }
- if(Object.hasOwn(raw,'axis')){if(!['x','y','z'].includes(raw.axis))throw Error('Invalid repetition axis');result.axis=raw.axis;}
- return result;
-}
 // Weld coincident coordinates solely to identify connected triangle islands.
 // No source vertices are moved or simplified.
 export function splitParts(item){
@@ -26,8 +16,3 @@ export function splitParts(item){
  });
 }
 export function measure(positions){const box=new THREE.Box3();for(let i=0;i<positions.length;i+=3)box.expandByPoint(new THREE.Vector3().fromArray(positions,i));return {box,centre:box.getCenter(new THREE.Vector3()),size:box.getSize(new THREE.Vector3())};}
-export function transformElement(base,raw={},copy=0){
- const p=validateElement(raw),{centre}=measure(base),rotation=new THREE.Matrix4().makeRotationFromEuler(new THREE.Euler(p.rotateX*Math.PI/180,p.rotateY*Math.PI/180,p.rotateZ*Math.PI/180)),result=new Float64Array(base.length),v=new THREE.Vector3(),scale=new THREE.Vector3(p.scaleX,p.scaleY,p.scaleZ);
- for(let i=0;i<base.length;i+=3){v.fromArray(base,i).sub(centre).multiply(scale).applyMatrix4(rotation).add(centre);v.x+=p.offsetX;v.y+=p.offsetY;v.z+=p.offsetZ;v[p.axis]+=copy*p.spacing;v.toArray(result,i);}
- return result;
-}

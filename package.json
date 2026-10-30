@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "vite --host 0.0.0.0",
     "build": "vite build",
-    "test": "node --test --test-isolation=none src/dae-deform.test.js src/view-camera.test.js src/repetition.test.js src/element-parameters.test.js"
+    "test": "node --test --test-isolation=none src/dae-deform.test.js src/view-camera.test.js src/repetition.test.js src/element-parameters.test.js src/family-parameters.test.js"
   },
   "dependencies": {
     "three": "^0.180.0",

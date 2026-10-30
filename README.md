@@ -1,6 +1,6 @@
 # Toba Geometry Lab
 
-Interactive base-geometry study using the uploaded `Rumah+Batak+Toba.dae` as the actual mesh baseline. The 50 source mesh definitions and 132 placements are retained geometrically, with disconnected pieces separated for individual editing. The baseline renders 252 editable pieces. The source has 50,810 triangles across its unique mesh definitions; instance reuse adds further placed triangles. No procedural replacement roof or invented enclosure is added. Source provenance and physical dimensions remain unverified.
+Interactive base-geometry study using the uploaded `Rumah+Batak+Toba.dae` as the actual mesh baseline. The 50 source mesh definitions and 132 placements are retained geometrically, with disconnected pieces separated for family-based regeneration. The baseline renders 252 geometric pieces. The source has 50,810 triangles across its unique mesh definitions; instance reuse adds further placed triangles. No procedural replacement roof or invented enclosure is added. Source provenance and physical dimensions remain unverified.
 
 Requires Node.js 24.
 
@@ -48,15 +48,23 @@ Reset restores the original 132 placements geometrically as 252 separated pieces
 
 Axonometric is the initial and reset view. The canvas fills remaining screen height. Assembly layers and references open on demand beneath it, one at a time, with bounded panel scrolling. Fit model reframes the current view; Expand viewport enters browser fullscreen for the workspace where supported. The desktop sidebar scrolls separately and mobile retains a compact parameter area. Orthographic framing leaves an 8% margin around the projected model bounds.
 
-## Individual element parameters
 
-Open **Individual elements**, choose an assembly and element, or click a visible piece in the viewport. All 252 connected pieces in the baseline have controls for:
+## Component-family sliders
 
-- Transverse, vertical and longitudinal bounding size (metres, before individual rotation).
-- X/Y/Z translation and rotation about the piece centre.
-- Copy count (0–12), copy direction and centre-to-centre spacing. Zero removes the piece; the chooser still allows it to be restored.
-- Reset this element; the global reset clears all element edits and returns to the DAE baseline.
+The interface now uses family sliders instead of the individual transform/copy editor. The source geometry remains the baseline. Controls include:
 
-Connected triangle islands are found by welding coordinate matches at a 0.00001-model-unit tolerance for connectivity analysis only. Source vertices and triangles are retained without simplification. A connected island can contain touching or joined architectural members; these remain one editable piece. This is geometry editing across all assemblies, not a semantic joint-preserving grammar or structural solver. Local edits can detach members or create collisions. Repetition controls remain source-based; changing the global row/frame counts changes which generated-piece IDs exist. Edits are associated with stable piece IDs, not abstract construction roles.
+| Family | Sliders |
+| --- | --- |
+| Columns and stones | Columns per side row, column diameter, stone width/height scales |
+| Lower connecting members | Tie-level count, tie section scale |
+| Floor and upper beams | Longitudinal beams per source row, floor thickness, beam section scale |
+| Roof | Frame count, transverse ribs per side, longitudinal members per side, roof member section scale |
+| Stairs | Tread count, stair width, tread thickness |
+| Ground base | Width, length and thickness scales |
+| Overall proportions | Width, length, floor elevation, body span and roof height scales |
 
-**Export parameters** downloads schema-version-4 JSON containing global parameters and local overrides. **Import parameters** restores supported values for the current model, with validation before changing the scene. The importer applies local edits whose IDs exist under the imported row/frame counts. Browser reload does not automatically retain local edits; export before leaving. No source mesh metadata table is shown in the interface.
+Roof frame spacing is also a slider. Counts resample the original station spans; changing house dimensions changes resulting spacing. Baseline roof rib and longitudinal-member counts are 27 and 33 per side. Lower ties form five series with four levels each; upper longitudinal beams form three source rows with two members each. Stair treads begin at seven. Source end-face/internal columns and connected roof pieces outside identified repeat families retain their counts.
+
+Resampling places source templates at interpolated centre positions and bounding sizes, preserving topology. Roof frame interpolation separately uses corresponding source vertices. Modified ribs/battens are exploratory approximations and are not guaranteed to contact every adjacent curved member. Section scales are axis-based approximations, not engineered timber-section calculations; local joints and collisions are not solved. Default sliders restore all source geometry, with only horizontal centring and rendering precision differences.
+
+Export/import uses schema version 5 for family settings. Earlier files without individual overrides can load with default values for new sliders. Files containing the former individual transform overrides are rejected with an explanation instead of silently discarding those edits. Click-to-highlight remains; the manual element editor and source-metadata panel are absent.

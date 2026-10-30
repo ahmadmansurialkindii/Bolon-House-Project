@@ -1,4 +1,5 @@
-export const baseline={widthScale:1,lengthScale:1,floor:2.23,body:2.07,roofScale:1,columnCount:9,frameCount:5};
+import {familyDefaults} from './family-parameters.js';
+export const baseline={widthScale:1,lengthScale:1,floor:2.23,body:2.07,roofScale:1,columnCount:9,frameCount:5,...familyDefaults};
 export function deform(x,y,z,p){
  let h;
  if(y<=2.23)h=y*p.floor/2.23;
